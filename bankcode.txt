@@ -1,175 +1,232 @@
 '''
-Created on Nov 13, 2017
+Created on Nov 16, 2017
 
 @author: Abhishek Gupta
 '''
 import cx_Oracle
 import datetime
-import time
-from builtins import int
-class customer:    
-    
+import time;
+from builtins import str
+#from curses.ascii import NUL
+
+class cust:
+        
     def create_new(self):
         #add new customer
-        self.name=input("NAME --")
+        self.name=input("Enter name--")
+        self.actype=input("Enter a/c type(saving/current)--")
         
-        self.actype=input("a/c type(saving/current) --")
-
-        self.email_id=input("Email ID --")
-        
-        self.id_no=input("ID NO --")
-        
-        self.cust_type=input("Type of Customer --")
-        #generate facno
-        conn=cx_Oracle.connect("mayank34/mayank34")
-        cur=conn.cursor()
-        cur.execute("select max(acno) from new_cust")
-        
-        x=cur.fetchone()
-        x=int(x[0])
-        #print(int(x[0]))
-        x=x+1
-        y=x
-        if self.actype=="saving":
-            self.facno="s"+str(y)
-        if self.actype=="current":
-            self.facno="c"+str(y)
-        x=str(x)
-        #print('x ',x)
-        cur.execute("insert into new_cust values('"+self.facno+"','"+x+"','"+self.actype+"','"+self.name+"','"+self.email_id+"','"+self.id_no+"','"+self.cust_type+"')")
-        #cur.execute("insert into balance values('"+x+"','"+str(self.bal)+"')")
-        conn.commit()
-        conn.close()
-        
-        if(self.cust_type.lower()=='normal'):
-           nc = normal_customer
-           nc.intialize(self.facno,x)
-        
-        """if(self.cust_type.lower()=='gold'):
-            gc=gold_customer
-            gc.intialize(self.facno,x) 
-    """
-
-class normal_customer(customer):
-    
-    def intialize(self,facno,x):
         while(1):
-            self.bal=int(input("Enter Opening balance(>500) --"))
-            
+            self.bal=int(input("Enter Opening balance(>500)--"))
+             
             if(self.bal<500):
                 print("invalid Balance")
-            
+             
             elif(self.bal>=500):
                 break
-        
-        conn=cx_Oracle.connect("mayank34/mayank34")
-        cur=conn.cursor()
-        cur.execute("insert into normal_Balnc values('"+x+"','"+str(self.bal)+"')")
-            
-        
-        
-        
-    def withdrawal(self):
-        self.facno=input("Enter a/c no.")
-        self.amt=input("Enter amount ")
-        
-        conn=cx_Oracle.connect("mayank34/mayank34")
-        cur=conn.cursor()
-        cur.execute("select bal from balance where facno='"+self.facno+"'")
-        b=cur.fetchone()
-        b=int(b[0])
-        #print(b)
-        ub=b-int(self.amt)
-        
-        if ub<500:
-            print("No minimum balance")
-        else:
-            now = datetime.datetime.now()
-            
-            ub=str(ub)
-            
-            
-            cur.execute("insert into trans values('"+self.facno+"','"+now.strftime("%d-%b-%y")+"','withdrawal','"+self.amt+"')")
-            cur.execute("update balance set bal='"+ub+"' where facno='"+self.facno+"'")
-            conn.commit()            
-
-
-"""class gold_customer(customer):
-    
-    def intialize(self,acc_no):
-        {
-        
-        while(1):
-            self.bal=int(input("Enter Opening balance(>500) --"))
-            
-            if(self.bal<500):
-                print("invalid Balance")
-            
-            elif(self.bal>=500):
-                break 
-         
-        self.sec_depo=input("Enter security amount --")   
-            
+        #auto genrating accno by inncrementing max(acno) value by 1
+        #self.email=input("Enter email ID--")
+        #self.id=input("Enter ID NO.--")
         conn=cx_Oracle.connect("mayank34/mayank34")
         cur=conn.cursor()
         cur.execute("select max(acno) from new_cust")
-            
-        }        
-    
-    def withdrawal(self):
-        self.facno=input("Enter a/c no.")
-        self.amt=input("Enter amount ")
+        self.x=cur.fetchone()
+        self.x=int(self.x[0])
+        self.x=self.x+1
         
-        conn=cx_Oracle.connect("u1/u1")
+        if self.actype=="saving":
+            self.facno="s"+str(self.x)
+        
+        if self.actype=="current":
+            self.facno="c"+str(self.x)
+        
+        self.x=str(self.x)
+        self.acno=self.x
+        conn.close()
+        
+       # return {self.name,self.actype,self.bal,self.acno,self.facno}
+        
+    def commit1(self):
+        self.minval=str(-1)
+        self.bal=str(self.bal)
+        conn=cx_Oracle.connect("mayank34/mayank34")
         cur=conn.cursor()
-        cur.execute("select bal from balance where facno='"+self.facno+"'")
+        cur.execute("insert into new_cust values('"+self.facno+"','"+self.acno+"','"+self.actype+"','"+self.name+"')")
+        cur.execute("insert into balance values('"+self.acno+"','"+self.bal+"','"+self.minval+"')")
+        conn.commit()
+        conn.close()    
+        
+    def withdrawal(self):
+        self.acno=input("Enter a/c no.--")
+        self.amt=input("Enter amount--")
+        conn=cx_Oracle.connect("mayank34/mayank34")
+        cur=conn.cursor()
+        cur.execute("select acno from balance where acno='"+self.acno+"'")
         b=cur.fetchone()
         b=int(b[0])
-        #print(b)
-        ub=b-int(self.amt)
+        conn.commit()
+        conn.close()
+        #validating enrty if yes then updating bal table
+        if(b==int(self.acno)):
+            conn=cx_Oracle.connect("mayank34/mayank34")
+            cur=conn.cursor()
+            cur.execute("select bal from balance where acno='"+self.acno+"'")
+            b=cur.fetchone()
+            b=int(b[0])
+            #print(b)
+            ub=b-int(self.amt)
         
-        if ub<500:
-            print("No minimum balance")
+            if ub<500:
+                print("Amount exceeds minimum balance limit")
+            else:
+                now = datetime.datetime.now()
+                ub=str(ub)
+                cur.execute("insert into trans values('"+self.acno+"','"+now.strftime("%d-%b-%y")+"','withdrawal','"+self.amt+"')")
+                cur.execute("update balance set bal='"+ub+"' where acno='"+self.acno+"'")
+                conn.commit()
+                conn.close()
         else:
-            now = datetime.datetime.now()
+            print("Account not found")
             
+    def Deposit(self):
+        self.acno=input("enter your accno.--")
+        self.amt=input("enter amount--")
+        conn=cx_Oracle.connect("mayank34/mayank34")
+        cur=conn.cursor()
+        cur.execute("select acno from balance where acno='"+self.acno+"'")
+        b=cur.fetchone()
+        b=int(b[0])
+        conn.commit()
+        conn.close()
+        #validating enrty if yes then updating bal table
+        
+        if(b==int(self.acno)):
+            conn=cx_Oracle.connect("mayank34/mayank34")
+            cur=conn.cursor()
+            cur.execute("select bal from balance where acno='"+self.acno+"'")
+            b=cur.fetchone()
+            b=int(b[0])
+            ub=b+int(self.amt)
             ub=str(ub)
-            
-            
-            cur.execute("insert into trans values('"+self.facno+"','"+now.strftime("%d-%b-%y")+"','withdrawal','"+self.amt+"')")
-            cur.execute("update balance set bal='"+ub+"' where facno='"+self.facno+"'")
+            cur.execute("update balance set bal='"+ub+"' where acno='"+self.acno+"'")
+            now = datetime.datetime.now()
+            cur.execute("insert into trans values('"+self.acno+"','"+now.strftime("%d-%b-%y")+"','Deposit','"+ub+"')")
             conn.commit()
-"""        
+            conn.close()
         
+        else:
+            print("Account Not found") 
+            
+    def Search(self):
+        self.acno=input("enter account no.--")
+        self.acno=str(self.acno)
+        conn=cx_Oracle.connect("mayank34/mayank34")
+        cur=conn.cursor()
+        cur.execute("select acno from new_cust where acno='"+self.acno+"'")
+        b=cur.fetchone()
+        b=int(b[0])
         
+        if(b==int(self.acno)):
+            cur.execute("select * from new_cust where acno='"+self.acno+"'")
+            print(cur.fetchall())
+            conn.close()
+        else:
+            print("Record not found!")
+              
+    def delete(self):
+        self.acno=input("Enter account no.--")
+        self.acno=str(self.acno)
+        conn=cx_Oracle.connect("mayank34/mayank34")
+        cur=conn.cursor()
+        cur.execute("select acno from new_cust where acno='"+self.acno+"'")
+        b=cur.fetchone()
+        b=int(b[0])
+        
+        if(b==int(self.acno)):
+            cur.execute("delete from new_cust where acno='"+self.acno+"'")
+            print("Record deleted")
+            conn.close()
+        else:
+            print("Record not found")
+                     
+class gold_cust(cust):
     
+    def create_new(self):
+        super(gold_cust,self).create_new()
+        self.sec_depo=input("Enter security deposit--")
+        
+    def commit2(self):
+        self.bal=str(self.bal)
+        conn=cx_Oracle.connect("mayank34/mayank34")
+        cur=conn.cursor()
+        cur.execute("insert into new_cust values('"+self.facno+"',"+self.acno+",'"+self.actype+"','"+self.name+"')")
+        cur.execute("insert into balance values('"+self.acno+"','"+self.bal+"','"+self.sec_depo+"')")
+        conn.commit()
+        conn.close()    
+        
+    def withdrawal(self):
+        self.acno=input("Enter a/c no.--")
+        self.amt=input("Enter amount--")
+        conn=cx_Oracle.connect("mayank34/mayank34")
+        cur=conn.cursor()
+        cur.execute("select acno from balance where acno='"+self.acno+"'")
+        b=cur.fetchone()
+        b=int(b[0])
+        #validating enrty if yes then updating bal table
+        if(b==self.acno):
+            conn=cx_Oracle.connect("mayank34/mayank34")
+            cur=conn.cursor()
+            cur.execute("select bal from balance where acno='"+self.acno+"'")
+            bal=cur.fetchone()
+            bal=int(bal[0])
+            #print(b)
+            cur_bal=bal-int(self.amt)
+            
+            if cur_bal<300:
+                print("Amount exceeds gold minimum balance limit")
+            else:
+                now = datetime.datetime.now()
+                cur_bal=str(cur_bal)
+                cur.execute("insert into trans values('"+self.acno+"','"+now.strftime("%d-%b-%y")+"','withdrawal','"+self.amt+"')")
+                cur.execute("update balance set bal='"+cur_bal+"' where facno='"+self.acno+"'")
+                conn.commit()
+                conn.close()
+        else:
+            print("Account not found")    
+        
+        
 ans='y'
 while ans=='y':
-    print("--------------------")
-    print("     BANK ADMIN     ")
-    print("--------------------")
-    print("ADD NEW CUSTOMER --1")
-    print("   FOR WITHDRAWL --2")
-    print("     FOR DEPOSIT --3")
-    print("  DELETE ACCOUNT --4")
-    print("  SEARCH ACCOUNT --5")
-    print("--------------------")
-    ch=int(input("Enter choice --"))
+    print("----------------------------")
+    print(" Create Customer (Normal)--1")
+    print(" Withdrawal (Normal)--2")
+    print(" Create Customer (Gold)--3")
+    print(" Withdrawal (Gold)--4")
+    print(" Deposit--5")
+    print(" Search--6")
+    print(" delete Customer--7")
+    print("----------------------------")
     
+    o1=cust()
+    o2=gold_cust()
+    ch=int(input("Enter choice--"))
     if ch==1:
-        o1=customer()
         o1.create_new()
-        
+        o1.commit1()
     elif ch==2:
-        o2=customer()
-        o2.withdrawal()
-        
+        o1.withdrawal()
+    elif ch==3:
+        o2.create_new()
+        o2.commit2()
+    elif ch==4:
+        o2.withdrawal()        
+    elif ch==5:
+        o1.Deposit()
+    elif ch==6:
+        o1.Search()
+    elif ch==7:
+        o1.delete()            
     else:
         print("Invalid choice")
-    ans=input("To Continue...y/n")
-'''c1=cust()
-c1.set_detail()
-c1.get_detail()
-c2=cust()
-c2.set_detail()
-c2.get_detail()'''
+    
+    ans=input("To Continue...y/n--")

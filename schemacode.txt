@@ -1,9 +1,13 @@
+'''
+Created on Nov 16, 2017
+
+@author: Abhishek Gupta
+'''
 import cx_Oracle
 conn=cx_Oracle.connect("mayank34/mayank34")
 cur=conn.cursor()
-cur.execute("create table new_cust(facno varchar2(25) NOT NULL,acno number(25) NOT NULL PRIMARY KEY,actype varchar2(10) NOT NULL,name varchar2(50) NOT NULL,email varchar2(20) NOT NULL,idno varchar2(10) NOT NULL,cust_type varchar2(10) NOT NULL)")
-cur.execute("create table gold_balance(facno varchar2(25) NOT NULL PRIMARY KEY,acno number(25) references new_cust(acno), bal number(10,5), sec_depo number(10,5))")
-cur.execute("create table normal_Balnc(facno varchar2(25) NOT NULL PRIMARY KEY,acno number(25) references new_cust(acno), bal number(10,5))")
-cur.execute("create table trans(acno number(25) REFERENCES new_cust(acno),acc_type varchar2(25),dot date,ttype varchar2(10),trans_amt number(10,5),status varchar2(20))")
+
+cur.execute("create table new_cust(facno varchar2(25),acno number(25) primary key,actype varchar2(10),name varchar2(25))")
+cur.execute("create table balance(acno number(25) references new_cust(acno) ON DELETE CASCADE,bal number(10,5),sec_depo number(10,5))")
+cur.execute("create table trans(acno varchar2(10),dot date,ttype varchar2(10),amt number(8))")
 conn.commit()
-conn.close()

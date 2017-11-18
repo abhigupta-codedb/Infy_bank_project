@@ -1,0 +1,7 @@
+1> first run below querie explicitly on Oracle 11g other wise there will be error.
+2> delete command code not working (try to fix it).
+3> Not complete more work has to be done.
+insert into new_cust values('s1002',1000,'saving','happy')
+
+
+ 
